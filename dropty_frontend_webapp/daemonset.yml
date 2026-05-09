@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: dropty-app-daemonset
+  namespace: dropty-app
+  labels:
+    app: dropty-app
+spec:
+  selector:
+    matchLabels:
+      app: dropty-app
+  template:
+    metadata:
+      labels:
+        app: dropty-app
+    spec:
+      containers:
+      - name: dropty-app
+        image: sourabhbiswasdropty/dropty_frontend:dev-fe74ffa
+        ports:
+        - containerPort: 3000

@@ -1,0 +1,115 @@
+# Logging
+log_format app_main '$remote_addr - $remote_user [$time_local] "$request" '
+                '$status $body_bytes_sent "$http_referer" '
+                '"$http_user_agent" "$http_x_forwarded_for"';
+
+log_format limit '$remote_addr - $remote_user [$time_local] "$request" '
+                 '$status $body_bytes_sent "$http_referer" '
+                 '"$http_user_agent" "$http_x_forwarded_for" user="$http_x_user_id" cookie="$cookie_user_id"';
+
+access_log /dev/stdout app_main;
+
+# The following zones are defined at the http level via inclusion in http.d
+limit_req_zone $binary_remote_addr zone=app_limit:10m rate=${APP_RATE}r/s;
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=${API_RATE}r/s;
+
+server {
+    listen 80;
+    server_name _;
+
+    server_tokens off;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+
+    client_max_body_size 10M;
+
+    location /nginx_status {
+        stub_status;
+        allow 127.0.0.1;
+        deny all;
+        access_log off;
+    }
+
+    location /health {
+        access_log off;
+        proxy_pass http://127.0.0.1:$APP_PORT/api/health;
+    }
+
+    location /live {
+        access_log off;
+        proxy_pass http://127.0.0.1:$APP_PORT/api/live;
+    }
+
+    location /api/ {
+        limit_req zone=api_limit burst=${API_BURST};
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+
+    location / {
+        limit_req zone=app_limit burst=${APP_BURST};
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_buffering on;
+        proxy_read_timeout 90;
+    }
+
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        access_log off;
+        expires 365d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /_next/image {
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        access_log off;
+        expires 1h;
+        add_header Cache-Control "public, max-age=3600";
+    }
+
+    location /_next/data/ {
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        access_log off;
+        expires 0;
+        add_header Cache-Control "no-cache";
+    }
+
+    location ~* \.(png|jpe?g|gif|ico|svg|webp|avif|woff2?|ttf|otf)$ {
+        root /app/public;
+        try_files $uri @proxy;
+        access_log off;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location @proxy {
+        proxy_pass http://127.0.0.1:${APP_PORT};
+    }
+
+    error_page 429 = @too_many;
+
+    location @too_many {
+        access_log /var/log/nginx/limit.log limit;
+        add_header Retry-After 10 always;
+        add_header Content-Type application/json;
+        return 429 '{"error":"Too many requests","retry_after":10}';
+    }
+}

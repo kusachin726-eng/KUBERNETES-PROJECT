@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dropty-api-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dropty-api
+  template:
+    metadata:
+      labels:
+        app: dropty-api
+    spec:
+      containers:
+        - name: dropty-api
+          image: nil
+          ports:
+            - containerPort: 3005

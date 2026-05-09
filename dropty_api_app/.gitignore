@@ -1,0 +1,27 @@
+# Directories
+node_modules/
+dist/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+.scannerwork
+
+# Dependency lock files
+package-lock.json
+yarn.lock
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.yml

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dropty-crm-deployment
+  namespace: dropty-app
+  labels:
+    app: dropty-crm
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: dropty-crm
+  template:
+    metadata:
+      labels:
+        app: dropty-crm
+    spec:
+      containers:
+        - name: dropty-crm
+          image: nil
+          ports:
+            - containerPort: 3005
+          envFrom:
+            - secretRef:
+                name: dropty-app-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

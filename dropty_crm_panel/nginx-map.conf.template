@@ -1,0 +1,5 @@
+# WebSocket Upgrade Mapping (valid only in http{} context)
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}

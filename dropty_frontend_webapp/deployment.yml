@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dropty-app-deployment
+  namespace: dropty-app
+  labels:
+    app: dropty-app
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: dropty-app
+  template:
+    metadata:
+      labels:
+        app: dropty-app
+    spec:
+      containers:
+        - name: dropty-app
+          image: sourabhbiswasdropty/dropty_frontend:dev-fe74ffa
+          ports:
+            - containerPort: 3081
+          envFrom:
+            - secretRef:
+                name: dropty-app-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

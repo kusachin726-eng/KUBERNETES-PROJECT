@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+
+# logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env & secrets
+# Do not include .env in build context — supply env vars at runtime (docker run -e ... or through your platform)
+.env
+
+# git
+.git
+.gitignore
+
+# docs & misc
+README.md
+example_nginx.conf
+
+# dev / process tools
+ecosystem.config.js
+# Ignore local nginx config files - we build nginx config from templates at runtime
+nginx.conf
+
+# docker files themselves
+Dockerfile
+docker-compose.yml

@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dropty-crm-service
+  namespace: dropty-app
+spec:
+  selector:
+    app: dropty-crm
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 3005
+  type: ClusterIP 

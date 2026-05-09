@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: dropty-app-service
+  namespace: dropty-app
+spec:
+  selector:
+    app: dropty-app
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 3081
+  type: ClusterIP 
